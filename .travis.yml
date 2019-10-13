@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t magnupa/client-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true magnupa/client-test npm test
+
+after_success:
+  - docker build -t magnupa/multi-client ./client
+  - docker build -t magnupa/multi-nginx ./nginx
+  - docker build -t magnupa/multi-server ./server
+  - docker build -t magnupa/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push magnupa/multi-client
+  - docker push magnupa/multi-nginx
+  - docker push magnupa/multi-server
+  - docker push magnupa/multi-worker
